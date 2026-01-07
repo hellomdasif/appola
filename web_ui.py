@@ -1,0 +1,702 @@
+#!/usr/bin/env python3
+"""Web UI for batch query requests."""
+
+import json
+import requests
+from flask import Flask, render_template_string, request, jsonify
+from pathlib import Path
+
+app = Flask(__name__)
+
+# Configuration
+URL = "https://uaas.kaixindou.net/service/batchQuery"
+
+HEADERS = {
+    "Sec-Ch-Ua-Platform": '"Windows"',
+    "Accept-Language": "en-US,en;q=0.9",
+    "Sec-Ch-Ua": '"Chromium";v="143", "Not A(Brand";v="24"',
+    "Sec-Ch-Ua-Mobile": "?0",
+    "X-Requested-With": "XMLHttpRequest",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "Accept": "*/*",
+    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    "Origin": "https://uaas-test.kaixindou.net",
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Dest": "empty",
+    "Referer": "https://uaas.kaixindou.net/html/tool.html",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Priority": "u=1, i"
+}
+
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Batch Query Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #results {
+            display: none;
+        }
+
+        .result-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .result-header h2 {
+            margin-bottom: 10px;
+        }
+
+        .status-code {
+            display: inline-block;
+            padding: 5px 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            word-break: break-all;
+        }
+
+        .device-id {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            position: relative;
+        }
+
+        .info-item {
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+            opacity: 0.7;
+        }
+
+        .device-id .copy-btn {
+            background: #ffc107;
+            color: #333;
+            opacity: 1;
+        }
+
+        .copy-btn:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .device-id .copy-btn:hover {
+            background: #e0a800;
+        }
+
+        .copy-btn.copied {
+            background: #28a745 !important;
+            color: white !important;
+        }
+
+        .third-party-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .third-party-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .json-view {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f5c6cb;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #667eea;
+        }
+
+        .user-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-nick {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .user-vid {
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Batch Query Tool</h1>
+
+        <div class="card">
+            <form id="queryForm">
+                <div class="form-group">
+                    <label>API Endpoint URL</label>
+                    <input type="text" id="endpoint" name="endpoint" value="https://uaas.kaixindou.net/service/batchQuery" placeholder="Enter API endpoint" required>
+                    <small style="color: #6c757d; display: block; margin-top: 5px;">
+                        Quick presets:
+                        <button type="button" onclick="setEndpoint('https://uaas.kaixindou.net/service/batchQuery')" style="margin-left: 5px; padding: 2px 8px; font-size: 11px; border: 1px solid #667eea; background: white; color: #667eea; border-radius: 3px; cursor: pointer;">Batch Query</button>
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label>User ID (vals)</label>
+                    <input type="text" id="vals" name="vals" value="177307453" placeholder="Enter user ID" required>
+                </div>
+
+                <div class="form-group">
+                    <label>App ID</label>
+                    <input type="text" id="appId" name="appId" value="ikxd" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="type" name="type">
+                        <option value="1">Type 1</option>
+                        <option value="2">Type 2</option>
+                        <option value="3" selected>Type 3 (User)</option>
+                        <option value="4">Type 4</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>With OA</label>
+                    <select id="with_oa" name="with_oa">
+                        <option value="0">No</option>
+                        <option value="1" selected>Yes</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">Query</button>
+                    <button type="button" class="btn-secondary" onclick="clearResults()">Clear</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: white; font-weight: 600;">Loading...</p>
+        </div>
+
+        <div id="results" class="card">
+            <div class="result-header">
+                <h2>Results</h2>
+                <div>
+                    <span class="status-code" id="statusCode"></span>
+                    <div id="endpointInfo" style="margin-top: 10px; font-size: 14px; opacity: 0.9;"></div>
+                </div>
+            </div>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('queryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const params = Object.fromEntries(formData);
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(params)
+                });
+
+                const data = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('statusCode').textContent = `Status: ${data.status_code}`;
+
+                // Show endpoint info
+                if (data.endpoint) {
+                    document.getElementById('endpointInfo').textContent = `Endpoint: ${data.endpoint}`;
+                }
+
+                if (data.success) {
+                    displayResults(data.response);
+                } else {
+                    document.getElementById('resultContent').innerHTML = `
+                        <div class="error">
+                            <strong>Error:</strong> ${data.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('resultContent').innerHTML = `
+                    <div class="error">
+                        <strong>Request Failed:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        });
+
+        // Translation mappings
+        const translations = {
+            '普通账号': 'Regular Account',
+            '不存在': 'Does Not Exist',
+            '印度': 'India',
+            '男': 'Male',
+            '女': 'Female'
+        };
+
+        function translate(text) {
+            if (!text) return text;
+            return translations[text] || text;
+        }
+
+        function displayResults(response) {
+            const info = response.info[0];
+
+            let html = '';
+
+            if (info && translate(info.type) !== 'Does Not Exist') {
+                // User header with avatar
+                html += `
+                    <div class="user-header">
+                        ${info.avatar ? `<img src="${info.avatar}" class="avatar" alt="Avatar">` : ''}
+                        <div class="user-info">
+                            <div class="user-nick">${info.nick || 'N/A'}</div>
+                            <div class="user-vid">
+                                VID: ${info.vid || 'N/A'}
+                                ${info.vid ? `<button class="copy-btn" onclick="copyToClipboard('${info.vid}', event)" style="position: relative; margin-left: 10px; top: 0; right: 0;">Copy VID</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Key information grid
+                html += '<div class="info-grid">';
+
+                if (info.loginInfo && info.loginInfo.appDevID) {
+                    html += `
+                        <div class="info-item device-id">
+                            <button class="copy-btn" onclick="copyDeviceId('${info.loginInfo.appDevID}', event)">Copy</button>
+                            <div class="info-label">Device ID</div>
+                            <div class="info-value" style="font-size: 14px; word-break: break-all;">${info.loginInfo.appDevID}</div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                    <div class="info-item">
+                        <button class="copy-btn" onclick="copyToClipboard('${info.uuid}', event)">Copy</button>
+                        <div class="info-label">UUID</div>
+                        <div class="info-value">${info.uuid || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Account Type</div>
+                        <div class="info-value">${translate(info.type) || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <button class="copy-btn" onclick="copyToClipboard('${info.realCountry || ''}', event)">Copy</button>
+                        <div class="info-label">Country</div>
+                        <div class="info-value">${translate(info.country) || info.country || 'N/A'} (${(info.realCountry || 'N/A').toUpperCase()})</div>
+                    </div>
+                    <div class="info-item" style="background: #e7f3ff; border-left-color: #2196f3;">
+                        <button class="copy-btn" onclick="copyToClipboard('${info.mobile}', event)">Copy</button>
+                        <div class="info-label">Mobile Number ${info.mobile && info.mobile.includes('*') ? '(Masked by API)' : ''}</div>
+                        <div class="info-value">${info.mobile || 'N/A'}</div>
+                        ${info.mobile && info.mobile.startsWith('91') ? '<div style="font-size: 12px; color: #6c757d; margin-top: 5px;">🇮🇳 Indian number</div>' : ''}
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Gender</div>
+                        <div class="info-value">${translate(info.sex) || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Registered Device</div>
+                        <div class="info-value">${info.device || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Account Status</div>
+                        <div class="info-value">${info.enabled ? '✓ Enabled' : '✗ Disabled'}</div>
+                    </div>
+                    <div class="info-item">
+                        <button class="copy-btn" onclick="copyToClipboard('${info.birthday}', event)">Copy</button>
+                        <div class="info-label">Birthday</div>
+                        <div class="info-value">${info.birthday || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <button class="copy-btn" onclick="copyToClipboard('${info.createDate}', event)">Copy</button>
+                        <div class="info-label">Created Date</div>
+                        <div class="info-value">${info.createDate ? new Date(info.createDate).toLocaleDateString() : 'N/A'}</div>
+                    </div>
+                `;
+
+                if (info.loginInfo) {
+                    html += `
+                        <div class="info-item">
+                            <button class="copy-btn" onclick="copyToClipboard('${info.loginInfo.appDate}', event)">Copy</button>
+                            <div class="info-label">Last App Login</div>
+                            <div class="info-value">${new Date(info.loginInfo.appDate * 1000).toLocaleString()}</div>
+                        </div>
+                        <div class="info-item">
+                            <button class="copy-btn" onclick="copyToClipboard('${info.loginInfo.appIP}', event)">Copy</button>
+                            <div class="info-label">App Login IP</div>
+                            <div class="info-value">${info.loginInfo.appIP || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">App Device Type</div>
+                            <div class="info-value">${info.loginInfo.appDevType || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <button class="copy-btn" onclick="copyToClipboard('${info.loginInfo.webDate}', event)">Copy</button>
+                            <div class="info-label">Last Web Login</div>
+                            <div class="info-value">${info.loginInfo.webDate ? new Date(info.loginInfo.webDate * 1000).toLocaleString() : 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <button class="copy-btn" onclick="copyToClipboard('${info.loginInfo.webIP}', event)">Copy</button>
+                            <div class="info-label">Web Login IP</div>
+                            <div class="info-value">${info.loginInfo.webIP || 'N/A'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">App Type</div>
+                            <div class="info-value">${info.loginInfo.appType ? info.loginInfo.appType.charAt(0).toUpperCase() + info.loginInfo.appType.slice(1) : 'N/A'}</div>
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
+
+                // Third-party accounts section
+                if (info.thirdpartyList && info.thirdpartyList.length > 0) {
+                    html += `
+                        <div class="third-party-section">
+                            <h3>🔗 Linked Third-Party Accounts (${info.thirdpartyList.length})</h3>
+                            <div class="info-grid">
+                    `;
+                    info.thirdpartyList.forEach((account, index) => {
+                        html += `
+                            <div class="info-item">
+                                <button class="copy-btn" onclick="copyToClipboard('${account.openId}', event)">Copy</button>
+                                <div class="info-label">${account.thirdpartyType ? account.thirdpartyType.charAt(0).toUpperCase() + account.thirdpartyType.slice(1) : 'Unknown'}</div>
+                                <div class="info-value" style="font-size: 14px;">${account.openId || 'N/A'}</div>
+                            </div>
+                        `;
+                    });
+                    html += '</div></div>';
+                }
+            } else {
+                html += `
+                    <div class="error">
+                        <strong>User Not Found:</strong> The requested user ID does not exist in the system.
+                    </div>
+                `;
+            }
+
+            // Full JSON response
+            html += `
+                <h3 style="margin-top: 30px; margin-bottom: 15px;">Full Response:</h3>
+                <div class="json-view">${JSON.stringify(response, null, 2)}</div>
+            `;
+
+            document.getElementById('resultContent').innerHTML = html;
+        }
+
+        function clearResults() {
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function copyDeviceId(deviceId, event) {
+            copyToClipboard(deviceId, event);
+        }
+
+        function copyToClipboard(text, event) {
+            event.preventDefault();
+
+            if (!text || text === 'undefined' || text === 'N/A') {
+                return;
+            }
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                btn.classList.add('copied');
+
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy: ' + err);
+            });
+        }
+
+        function setEndpoint(url) {
+            document.getElementById('endpoint').value = url;
+        }
+    </script>
+</body>
+</html>
+"""
+
+
+@app.route('/')
+def index():
+    """Render the main page."""
+    return render_template_string(HTML_TEMPLATE)
+
+
+@app.route('/api/query', methods=['POST'])
+def query():
+    """Handle batch query requests."""
+    try:
+        data = request.get_json()
+
+        # Get custom endpoint or use default
+        endpoint_url = data.get('endpoint', URL)
+
+        params = {
+            'appId': data.get('appId', 'ikxd'),
+            'with_oa': data.get('with_oa', '1'),
+            'type': data.get('type', '3'),
+            'vals': data.get('vals', '')
+        }
+
+        print(f"\n[API Request] Endpoint: {endpoint_url}")
+        print(f"[API Request] Params: {params}")
+
+        response = requests.post(
+            endpoint_url,
+            data=params,
+            headers=HEADERS,
+            timeout=10
+        )
+
+        print(f"[API Response] Status: {response.status_code}")
+
+        return jsonify({
+            'success': True,
+            'status_code': response.status_code,
+            'response': response.json(),
+            'endpoint': endpoint_url
+        })
+
+    except requests.exceptions.RequestException as e:
+        print(f"[API Error] {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+    except Exception as e:
+        print(f"[API Error] {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+if __name__ == '__main__':
+    port = 8081
+    print("\n" + "="*60)
+    print("🚀 Batch Query Web UI")
+    print("="*60)
+    print(f"\n📍 Server running at: http://localhost:{port}")
+    print(f"📍 Network access: http://0.0.0.0:{port}")
+    print("\n💡 Press Ctrl+C to stop the server\n")
+    print("="*60 + "\n")
+
+    app.run(host='0.0.0.0', port=port, debug=True)
