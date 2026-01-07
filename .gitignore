@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.Python
+venv/
+env/
+
+# Local data files
+*.bin
+*.log
+.DS_Store
+
+# Keep only these files for deployment
+# (everything else is ignored by default)
