@@ -1,0 +1,113 @@
+{
+    "message_content": {
+        "1": {
+            "10": 0,
+            "3": 0,
+            "12": {
+                "1": "X-Pcid",
+                "2": "1152921504614821693"
+            },
+            "4": {
+                "12": 1852399470
+            },
+            "7": "UserFollow.FollowUser",
+            "9": 1,
+            "6": "C_2008839690615524288_V2_IN_16_IN",
+            "2": 1767997928166,
+            "1": "net.matrix.relation.api.follow",
+            "8": "0.0.0"
+        },
+        "3": {
+            "1": 0,
+            "2": 2396116499975268,
+            "3": 2396116499973523
+        },
+        "2": 0
+    },
+    "schema_definition": {
+        "1": {
+            "type": "message",
+            "message_typedef": {
+                "10": {
+                    "type": "int",
+                    "name": ""
+                },
+                "3": {
+                    "type": "int",
+                    "name": ""
+                },
+                "12": {
+                    "type": "message",
+                    "message_typedef": {
+                        "1": {
+                            "type": "bytes",
+                            "name": ""
+                        },
+                        "2": {
+                            "type": "bytes",
+                            "name": ""
+                        }
+                    },
+                    "name": ""
+                },
+                "4": {
+                    "type": "message",
+                    "message_typedef": {
+                        "12": {
+                            "type": "fixed32",
+                            "name": ""
+                        }
+                    },
+                    "name": ""
+                },
+                "7": {
+                    "type": "bytes",
+                    "name": ""
+                },
+                "9": {
+                    "type": "int",
+                    "name": ""
+                },
+                "6": {
+                    "type": "bytes",
+                    "name": ""
+                },
+                "2": {
+                    "type": "int",
+                    "name": ""
+                },
+                "1": {
+                    "type": "bytes",
+                    "name": ""
+                },
+                "8": {
+                    "type": "bytes",
+                    "name": ""
+                }
+            },
+            "name": ""
+        },
+        "3": {
+            "type": "message",
+            "message_typedef": {
+                "1": {
+                    "type": "int",
+                    "name": ""
+                },
+                "2": {
+                    "type": "int",
+                    "name": ""
+                },
+                "3": {
+                    "type": "int",
+                    "name": ""
+                }
+            },
+            "name": ""
+        },
+        "2": {
+            "type": "int",
+            "name": ""
+        }
+    }
+}

@@ -1,0 +1,615 @@
+{
+    "message_content": {
+        "1": {
+            "1": "net.ihago.lpf.srv.lpfLiveRoomTemplateV2",
+            "2": 1767810848928,
+            "4": {
+                "12": 1852399470
+            },
+            "7": "/LpfLiveRoomTemplateV2CompatService/getLiveRoomInfoV2",
+            "8": "0.0.0",
+            "9": 2,
+            "12": {
+                "1": "X-Pcid",
+                "2": "1152921504609028146"
+            }
+        },
+        "3": {
+            "3": {
+                "1": "1164671593",
+                "2": "lpfLiveRoomTemplateV2",
+                "3": "getLiveRoomInfoV2",
+                "4": "b7369ee4108341989c8cae4cbebcd620",
+                "10": [
+                    {
+                        "1": "lpf_machine",
+                        "2": "ELP-AN00"
+                    },
+                    {
+                        "1": "lpf_loginToken",
+                        "2": "g0jTZYCZMni3GwR3VQ5FkQ86Y4rbnqCSzVQ3dq1dObzMolwRM8gYl1KXWA10u%2BVd%2CnNM9ovMxw683J%2BCzI7i19xHoXJoenuiDLKh%2BDOIlfJkbmQ%2Fdqeay9weY1lBmT0%2B%2FieXUmyBjFWI0m01SEE8cA%2FGIRjifa6w5Ouudr%2BrWjPILeYFh7hcoh03vkAzaBx9ZHGVC86Pt4J1CDl%2BFkmzBnvmqRze2XKBFOxZB48G%2B4m7qiZauhBxKbvzwcosIYjwwQbCDXpiCHKz4twyxjeNoaSEhpr3wPYYF%2Fx54Grglezcig1XS0VyG3EuqdXrnTRCFdM5aKYkaIBnr46TBR3FUILkrGWTMasK%2Fd1vs0fJHoWEib8QLNlUt%2F%2FOGz2yQaCam9Ld%2FcNtzDq3utMlPhXyz5YyOfJx2PEiHSAuGmYSlnuHkLSLVnAOd9%2FOHcNHlASBG87j9w4wu02P%2FweIpINo1yyHiPpx0V4lVHIZ702sRYc3frZPr4Tu3vgKLtp%2FZVLcyEgDepB0TFLFz%2FR43JTJ6qhFnTsuEharLmUOUWCoE5ouqMtZ7V987I2zX8MRhJfof"
+                    },
+                    {
+                        "1": "lpf_athLiveSdk_verion",
+                        "2": "2.2.2287-duowan"
+                    },
+                    {
+                        "1": "lpf_stype",
+                        "2": "1"
+                    },
+                    {
+                        "1": "lpf_osVersion",
+                        "2": "12"
+                    },
+                    {
+                        "1": "lpf_business_version",
+                        "2": "54000"
+                    },
+                    {
+                        "1": "lpf_hdid",
+                        "2": "028769a60a9e72e88400c976963b2001"
+                    },
+                    {
+                        "1": "lpf_thunder_version",
+                        "2": "3.12.7"
+                    },
+                    {
+                        "1": "lpf_language",
+                        "2": "en"
+                    },
+                    {
+                        "1": "lpf_country",
+                        "2": "IN"
+                    },
+                    {
+                        "1": "lpf_blitzplayer_version",
+                        "2": "11.5.7"
+                    },
+                    {
+                        "1": "lpf_compAppid",
+                        "2": "1164671593"
+                    },
+                    {
+                        "1": "setselector",
+                        "2": "875"
+                    }
+                ]
+            },
+            "4": {
+                "3": {
+                    "1": 1,
+                    "2": {
+                        "1": 4460006910
+                    },
+                    "3": {
+                        "1": 1187133026872762368,
+                        "5": 1767801614000,
+                        "7": 1,
+                        "12": "C_2002359027602510336_V2_IN_0_IN",
+                        "13": "C_2002359027602510336_V2_IN_0_IN"
+                    },
+                    "4": [
+                        {
+                            "1": 1187133026872762368,
+                            "2": "C_2002359027602510336_V2_IN_0_IN",
+                            "3": {
+                                "1": 4460006910
+                            },
+                            "4": 2,
+                            "5": "{\"directBzExtend\":\"\"}",
+                            "6": 1,
+                            "7": {
+                                "1": 1,
+                                "2": 1
+                            },
+                            "11": "C_2002359027602510336_V2_IN_0_IN",
+                            "12": "4460006910",
+                            "13": "C_2002359027602510336_V2_IN_0_IN",
+                            "14": 1767801614000,
+                            "16": 1193743396337000448
+                        },
+                        {
+                            "1": 1139747615850856448,
+                            "2": "C_1954973198467231104_V2_IN_0_IN",
+                            "3": {
+                                "1": 4465218461
+                            },
+                            "4": 2,
+                            "5": "{\"directBzExtend\":\"\"}",
+                            "6": 1,
+                            "7": {
+                                "1": 2,
+                                "2": 1
+                            },
+                            "11": "C_1954973198467231104_V2_IN_0_IN",
+                            "12": "4465218461",
+                            "13": "C_1954973198467231104_V2_IN_0_IN",
+                            "14": 1767807254000,
+                            "16": 1193743396337000448
+                        }
+                    ],
+                    "7": {
+                        "1": "tx2",
+                        "2": 4,
+                        "3": {
+                            "1": 1187133026872762368,
+                            "2": "<BINARY_BASE64: /pvZzhCdp5fREA==>",
+                            "3": [
+                                {
+                                    "1": "http://lpf-tx-in-livepull-a.olaparty.com/live/1164671593_4460006910_C_2002359027602510336_V2_IN_0_IN_800.m3u8",
+                                    "2": {
+                                        "14": {}
+                                    },
+                                    "3": 3,
+                                    "4": 368,
+                                    "5": 640,
+                                    "6": 800,
+                                    "7": 15,
+                                    "9": "368*640"
+                                },
+                                {
+                                    "1": "http://lpf-tx-in-livepull-a.olaparty.com/live/1164671593_4460006910_C_2002359027602510336_V2_IN_0_IN_800.flv",
+                                    "2": {
+                                        "14": {}
+                                    },
+                                    "3": 2,
+                                    "4": 368,
+                                    "5": 640,
+                                    "6": 800,
+                                    "7": 15,
+                                    "9": "368*640"
+                                },
+                                {
+                                    "1": "http://lpf-tx-in-livepull-a.olaparty.com/live/1164671593_4460006910_C_2002359027602510336_V2_IN_0_IN_H264.m3u8",
+                                    "2": {
+                                        "13": 100
+                                    },
+                                    "3": 3,
+                                    "4": 720,
+                                    "5": 1280,
+                                    "6": 980,
+                                    "7": 24,
+                                    "9": "720*1280"
+                                },
+                                {
+                                    "1": "http://lpf-tx-in-livepull-a.olaparty.com/live/1164671593_4460006910_C_2002359027602510336_V2_IN_0_IN_H264.flv",
+                                    "2": {
+                                        "13": 100
+                                    },
+                                    "3": 2,
+                                    "4": 720,
+                                    "5": 1280,
+                                    "6": 980,
+                                    "7": 24,
+                                    "9": "720*1280"
+                                }
+                            ],
+                            "5": [
+                                {
+                                    "1": "http://lpf-tx-in-livepull-a.olaparty.com/live/1164671593_4460006910_C_2002359027602510336_V2_IN_0_IN_800.m3u8",
+                                    "2": {
+                                        "14": {}
+                                    },
+                                    "3": 3,
+                                    "4": 368,
+                                    "5": 640,
+                                    "6": 800,
+                                    "7": 15
+                                },
+                                {
+                                    "1": "http://lpf-tx-in-livepull-a.olaparty.com/live/1164671593_4460006910_C_2002359027602510336_V2_IN_0_IN_800.flv",
+                                    "2": {
+                                        "14": {}
+                                    },
+                                    "3": 2,
+                                    "4": 368,
+                                    "5": 640,
+                                    "6": 800,
+                                    "7": 15
+                                },
+                                {
+                                    "1": "http://lpf-tx-in-livepull-a.olaparty.com/live/1164671593_4460006910_C_2002359027602510336_V2_IN_0_IN.m3u8",
+                                    "2": {
+                                        "13": 100
+                                    },
+                                    "3": 3,
+                                    "4": 720,
+                                    "5": 1280,
+                                    "6": 980,
+                                    "7": 24,
+                                    "10": 1
+                                },
+                                {
+                                    "1": "http://lpf-tx-in-livepull-a.olaparty.com/live/1164671593_4460006910_C_2002359027602510336_V2_IN_0_IN.flv",
+                                    "2": {
+                                        "13": 100
+                                    },
+                                    "3": 2,
+                                    "4": 720,
+                                    "5": 1280,
+                                    "6": 980,
+                                    "7": 24,
+                                    "10": 1
+                                },
+                                {
+                                    "1": "http://lpf-tx-in-livepull-a.olaparty.com/live/1164671593_4460006910_C_2002359027602510336_V2_IN_0_IN_H264.m3u8",
+                                    "2": {
+                                        "13": 100
+                                    },
+                                    "3": 3,
+                                    "4": 720,
+                                    "5": 1280,
+                                    "6": 980,
+                                    "7": 24
+                                },
+                                {
+                                    "1": "http://lpf-tx-in-livepull-a.olaparty.com/live/1164671593_4460006910_C_2002359027602510336_V2_IN_0_IN_H264.flv",
+                                    "2": {
+                                        "13": 100
+                                    },
+                                    "3": 2,
+                                    "4": 720,
+                                    "5": 1280,
+                                    "6": 980,
+                                    "7": 24
+                                }
+                            ]
+                        }
+                    },
+                    "8": 2
+                },
+                "4": 1767810867189
+            }
+        }
+    },
+    "schema_definition": {
+        "1": {
+            "type": "message",
+            "message_typedef": {
+                "1": {
+                    "type": "bytes",
+                    "name": ""
+                },
+                "2": {
+                    "type": "int",
+                    "name": ""
+                },
+                "4": {
+                    "type": "message",
+                    "message_typedef": {
+                        "12": {
+                            "type": "fixed32",
+                            "name": ""
+                        }
+                    },
+                    "name": ""
+                },
+                "7": {
+                    "type": "bytes",
+                    "name": ""
+                },
+                "8": {
+                    "type": "bytes",
+                    "name": ""
+                },
+                "9": {
+                    "type": "int",
+                    "name": ""
+                },
+                "12": {
+                    "type": "message",
+                    "message_typedef": {
+                        "1": {
+                            "type": "bytes",
+                            "name": ""
+                        },
+                        "2": {
+                            "type": "bytes",
+                            "name": ""
+                        }
+                    },
+                    "name": ""
+                }
+            },
+            "name": ""
+        },
+        "3": {
+            "type": "message",
+            "message_typedef": {
+                "3": {
+                    "type": "message",
+                    "message_typedef": {
+                        "1": {
+                            "type": "bytes",
+                            "name": ""
+                        },
+                        "2": {
+                            "type": "bytes",
+                            "name": ""
+                        },
+                        "3": {
+                            "type": "bytes",
+                            "name": ""
+                        },
+                        "4": {
+                            "type": "bytes",
+                            "name": ""
+                        },
+                        "10": {
+                            "type": "message",
+                            "message_typedef": {
+                                "1": {
+                                    "type": "bytes",
+                                    "name": ""
+                                },
+                                "2": {
+                                    "type": "bytes",
+                                    "name": ""
+                                }
+                            },
+                            "name": ""
+                        }
+                    },
+                    "name": ""
+                },
+                "4": {
+                    "type": "message",
+                    "message_typedef": {
+                        "3": {
+                            "type": "message",
+                            "message_typedef": {
+                                "1": {
+                                    "type": "int",
+                                    "name": ""
+                                },
+                                "2": {
+                                    "type": "message",
+                                    "message_typedef": {
+                                        "1": {
+                                            "type": "int",
+                                            "name": ""
+                                        }
+                                    },
+                                    "name": ""
+                                },
+                                "3": {
+                                    "type": "message",
+                                    "message_typedef": {
+                                        "1": {
+                                            "type": "int",
+                                            "name": ""
+                                        },
+                                        "5": {
+                                            "type": "int",
+                                            "name": ""
+                                        },
+                                        "7": {
+                                            "type": "int",
+                                            "name": ""
+                                        },
+                                        "12": {
+                                            "type": "bytes",
+                                            "name": ""
+                                        },
+                                        "13": {
+                                            "type": "bytes",
+                                            "name": ""
+                                        }
+                                    },
+                                    "name": ""
+                                },
+                                "4": {
+                                    "type": "message",
+                                    "message_typedef": {
+                                        "1": {
+                                            "type": "int",
+                                            "name": ""
+                                        },
+                                        "2": {
+                                            "type": "bytes",
+                                            "name": ""
+                                        },
+                                        "3": {
+                                            "type": "message",
+                                            "message_typedef": {
+                                                "1": {
+                                                    "type": "int",
+                                                    "name": ""
+                                                }
+                                            },
+                                            "name": ""
+                                        },
+                                        "4": {
+                                            "type": "int",
+                                            "name": ""
+                                        },
+                                        "5": {
+                                            "type": "bytes",
+                                            "name": ""
+                                        },
+                                        "6": {
+                                            "type": "int",
+                                            "name": ""
+                                        },
+                                        "7": {
+                                            "type": "message",
+                                            "message_typedef": {
+                                                "1": {
+                                                    "type": "int",
+                                                    "name": ""
+                                                },
+                                                "2": {
+                                                    "type": "int",
+                                                    "name": ""
+                                                }
+                                            },
+                                            "name": ""
+                                        },
+                                        "11": {
+                                            "type": "bytes",
+                                            "name": ""
+                                        },
+                                        "12": {
+                                            "type": "bytes",
+                                            "name": ""
+                                        },
+                                        "13": {
+                                            "type": "bytes",
+                                            "name": ""
+                                        },
+                                        "14": {
+                                            "type": "int",
+                                            "name": ""
+                                        },
+                                        "16": {
+                                            "type": "int",
+                                            "name": ""
+                                        }
+                                    },
+                                    "name": ""
+                                },
+                                "7": {
+                                    "type": "message",
+                                    "message_typedef": {
+                                        "1": {
+                                            "type": "bytes",
+                                            "name": ""
+                                        },
+                                        "2": {
+                                            "type": "int",
+                                            "name": ""
+                                        },
+                                        "3": {
+                                            "type": "message",
+                                            "message_typedef": {
+                                                "1": {
+                                                    "type": "int",
+                                                    "name": ""
+                                                },
+                                                "2": {
+                                                    "type": "bytes",
+                                                    "name": ""
+                                                },
+                                                "3": {
+                                                    "type": "message",
+                                                    "message_typedef": {
+                                                        "1": {
+                                                            "type": "bytes",
+                                                            "name": ""
+                                                        },
+                                                        "2": {
+                                                            "type": "message",
+                                                            "message_typedef": {
+                                                                "14": {
+                                                                    "type": "group",
+                                                                    "group_typedef": {},
+                                                                    "name": ""
+                                                                },
+                                                                "13": {
+                                                                    "type": "int",
+                                                                    "name": ""
+                                                                }
+                                                            },
+                                                            "name": ""
+                                                        },
+                                                        "3": {
+                                                            "type": "int",
+                                                            "name": ""
+                                                        },
+                                                        "4": {
+                                                            "type": "int",
+                                                            "name": ""
+                                                        },
+                                                        "5": {
+                                                            "type": "int",
+                                                            "name": ""
+                                                        },
+                                                        "6": {
+                                                            "type": "int",
+                                                            "name": ""
+                                                        },
+                                                        "7": {
+                                                            "type": "int",
+                                                            "name": ""
+                                                        },
+                                                        "9": {
+                                                            "type": "bytes",
+                                                            "name": ""
+                                                        }
+                                                    },
+                                                    "name": ""
+                                                },
+                                                "5": {
+                                                    "type": "message",
+                                                    "message_typedef": {
+                                                        "1": {
+                                                            "type": "bytes",
+                                                            "name": ""
+                                                        },
+                                                        "2": {
+                                                            "type": "message",
+                                                            "message_typedef": {
+                                                                "14": {
+                                                                    "type": "group",
+                                                                    "group_typedef": {},
+                                                                    "name": ""
+                                                                },
+                                                                "13": {
+                                                                    "type": "int",
+                                                                    "name": ""
+                                                                }
+                                                            },
+                                                            "name": ""
+                                                        },
+                                                        "3": {
+                                                            "type": "int",
+                                                            "name": ""
+                                                        },
+                                                        "4": {
+                                                            "type": "int",
+                                                            "name": ""
+                                                        },
+                                                        "5": {
+                                                            "type": "int",
+                                                            "name": ""
+                                                        },
+                                                        "6": {
+                                                            "type": "int",
+                                                            "name": ""
+                                                        },
+                                                        "7": {
+                                                            "type": "int",
+                                                            "name": ""
+                                                        },
+                                                        "10": {
+                                                            "type": "int",
+                                                            "name": ""
+                                                        }
+                                                    },
+                                                    "name": ""
+                                                }
+                                            },
+                                            "name": ""
+                                        }
+                                    },
+                                    "name": ""
+                                },
+                                "8": {
+                                    "type": "int",
+                                    "name": ""
+                                }
+                            },
+                            "name": ""
+                        },
+                        "4": {
+                            "type": "int",
+                            "name": ""
+                        }
+                    },
+                    "name": ""
+                }
+            },
+            "name": ""
+        }
+    }
+}

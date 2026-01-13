@@ -1,0 +1,129 @@
+{
+  "message_content": {
+    "1": {
+      "10": 0,
+      "3": 0,
+      "12": {
+        "1": "X-Pcid",
+        "2": "1152921504612180879"
+      },
+      "4": {
+        "12": 1852399470
+      },
+      "7": "Channel.GetCurrentChannels",
+      "9": 1,
+      "6": {},
+      "2": 1765304992432,
+      "1": "net.ihago.channel.srv.mgr",
+      "8": "0.0.0"
+    },
+    "3": {
+      "5": 1,
+      "2": 1,
+      "4": 0,
+      "3": 0,
+      "6": 0,
+      "1": 2278845394061991
+    },
+    "2": 0
+  },
+  "schema_definition": {
+    "1": {
+      "type": "message",
+      "message_typedef": {
+        "10": {
+          "type": "int",
+          "name": ""
+        },
+        "3": {
+          "type": "int",
+          "name": ""
+        },
+        "12": {
+          "type": "message",
+          "message_typedef": {
+            "1": {
+              "type": "bytes",
+              "name": ""
+            },
+            "2": {
+              "type": "bytes",
+              "name": ""
+            }
+          },
+          "name": ""
+        },
+        "4": {
+          "type": "message",
+          "message_typedef": {
+            "12": {
+              "type": "fixed32",
+              "name": ""
+            }
+          },
+          "name": ""
+        },
+        "7": {
+          "type": "bytes",
+          "name": ""
+        },
+        "9": {
+          "type": "int",
+          "name": ""
+        },
+        "6": {
+          "type": "message",
+          "message_typedef": {},
+          "name": ""
+        },
+        "2": {
+          "type": "int",
+          "name": ""
+        },
+        "1": {
+          "type": "bytes",
+          "name": ""
+        },
+        "8": {
+          "type": "bytes",
+          "name": ""
+        }
+      },
+      "name": ""
+    },
+    "3": {
+      "type": "message",
+      "message_typedef": {
+        "5": {
+          "type": "int",
+          "name": ""
+        },
+        "2": {
+          "type": "int",
+          "name": ""
+        },
+        "4": {
+          "type": "int",
+          "name": ""
+        },
+        "3": {
+          "type": "int",
+          "name": ""
+        },
+        "6": {
+          "type": "int",
+          "name": ""
+        },
+        "1": {
+          "type": "int",
+          "name": ""
+        }
+      },
+      "name": ""
+    },
+    "2": {
+      "type": "int",
+      "name": ""
+    }
+  }
+}

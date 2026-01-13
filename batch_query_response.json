@@ -1,0 +1,49 @@
+{
+  "info": [
+    {
+      "uuid": 4353286043,
+      "type": "普通账号",
+      "createDate": "2019-08-18T15:45:13Z",
+      "mobile": "91****34",
+      "country": "印度",
+      "thirdpartyList": [
+        {
+          "thirdpartyType": "facebook",
+          "openId": "106222975632533"
+        },
+        {
+          "thirdpartyType": "facebook",
+          "openId": "106224292299068"
+        },
+        {
+          "thirdpartyType": "google",
+          "openId": "109372503522414915369"
+        },
+        {
+          "thirdpartyType": "HagoOpenID",
+          "openId": "1470573397955366464"
+        }
+      ],
+      "vid": "177307453",
+      "nick": "Frenzy",
+      "avatar": "https://o-in.tilive.net/blob/v2/ali/in/0/1/ns/1zzu10b/uurl/4353286043_1766926991.jpeg",
+      "sex": "男",
+      "device": "Android",
+      "realCountry": "in",
+      "loginInfo": {
+        "webDate": 1765969517,
+        "webIP": "104.28.251.94",
+        "appType": "google",
+        "appDevType": "iOS",
+        "appDate": 1767118963,
+        "appDevID": "d6ad07fcdc53fdb194bfff4530022600fc7cb688",
+        "appIP": "152.58.45.148"
+      },
+      "appId": "ikxd",
+      "enabled": 1,
+      "birthday": "2000-08-18"
+    }
+  ],
+  "result_code": "00000",
+  "result_desc": "OK"
+}
