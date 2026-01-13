@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""Streamlit UI for Batch Query with left panel form and styled results."""
+"""Modern Streamlit UI for User Batch Query Tool - Web UI Style with Sidebar."""
 
-import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 import requests
 import streamlit as st
-from streamlit.components.v1 import html as st_html
 
-# Hardcoded upstream endpoint (kept server-side)
 ENDPOINT_URL = "https://uaas.kaixindou.net/service/batchQuery"
 
 HEADERS = {
@@ -29,6 +26,13 @@ HEADERS = {
     "Priority": "u=1, i",
 }
 
+TYPE_OPTIONS = {
+    "1": "Type 1",
+    "2": "Type 2",
+    "3": "Type 3 (User)",
+    "4": "Type 4",
+}
+
 
 def translate(text):
     translations = {
@@ -43,21 +47,15 @@ def translate(text):
     return translations.get(text, text)
 
 
-def format_ist(value):
+def format_timestamp(value):
     if value is None or value == "":
         return "N/A"
     try:
-        if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace(".", "", 1).isdigit()):
-            value_num = float(value)
-            timestamp = value_num if value_num > 1e12 else value_num * 1000
-            dt = datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc)
+        if isinstance(value, (int, float)):
+            dt = datetime.fromtimestamp(value)
         else:
             dt = datetime.fromisoformat(str(value))
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-        ist = timezone(timedelta(hours=5, minutes=30))
-        dt_ist = dt.astimezone(ist)
-        return dt_ist.strftime("%d %b %Y, %I:%M:%S %p")
+        return dt.strftime("%Y-%m-%d %I:%M:%S %p")
     except Exception:
         return str(value)
 
@@ -78,216 +76,339 @@ def run_query(vals, app_id, type_choice, with_oa):
     return resp
 
 
-def render_result(info, full_response):
-    login = info.get("loginInfo") or {}
-    third = info.get("thirdpartyList") or []
-    html = f"""
-    <style>
-    body {{ margin:0; padding:0; font-family:'Manrope','Inter',system-ui,sans-serif; }}
-    .wrap {{
-        background: linear-gradient(135deg, #0e1a2b 0%, #182f55 35%, #1f3c6d 100%);
-        padding: 16px;
-        color: #0d1a2b;
-    }}
-    .card {{
-        background:#fff;
-        border-radius:16px;
-        padding:18px;
-        box-shadow:0 14px 45px rgba(9,16,40,0.35);
-        border:1px solid rgba(255,255,255,0.06);
-        margin-bottom:12px;
-    }}
-    .header {{
-        display:flex;
-        align-items:center;
-        gap:14px;
-        background: linear-gradient(135deg, #0d1a2b 0%, #1c3053 100%);
-        color:#f4f7ff;
-        border-radius:14px;
-        padding:14px;
-    }}
-    .avatar {{
-        width:86px; height:86px; border-radius:14px; object-fit:cover;
-        border:3px solid rgba(255,255,255,0.75);
-    }}
-    .pill {{
-        display:inline-block;
-        padding:8px 10px;
-        background: rgba(255,255,255,0.12);
-        border-radius:10px;
-        color:#d9e5ff;
-        margin-right:6px;
-        font-size:12px;
-    }}
-    .grid {{
-        display:grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap:12px;
-        margin-top:10px;
-    }}
-    .info-item {{
-        background:#f6f8fb;
-        border-radius:12px;
-        padding:12px;
-        border:1px solid #e3e8f2;
-    }}
-    .info-label {{ font-size:12px; color:#6b768b; text-transform:uppercase; margin-bottom:4px; }}
-    .info-value {{ font-size:16px; font-weight:700; color:#0f1d33; word-break:break-all; }}
-    .section-title {{ font-size:18px; font-weight:800; color:#0f1d33; margin:12px 0 6px 0; }}
-    .third-list {{ display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:8px; }}
-    .third-item {{ border:1px solid #e3e8f2; border-radius:12px; padding:10px; background:#fff; }}
-    a.ip-link {{ color:#5b8def; text-decoration:none; font-weight:700; }}
-    a.ip-link:hover {{ text-decoration:underline; }}
-    pre {{ background:#0e1624; color:#e0ecff; padding:12px; border-radius:12px; overflow:auto; }}
-    </style>
-    <div class="wrap">
-        <div class="card header">
-            {'<img src="'+info.get('avatar','')+'" class="avatar" />' if info.get('avatar') else ''}
-            <div>
-                <div style="font-size:22px;font-weight:800;">{info.get('nick') or 'N/A'}</div>
-                <div>
-                    <span class="pill">VID: {info.get('vid') or 'N/A'}</span>
-                    <span class="pill">User ID: {info.get('uuid') or 'N/A'}</span>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="section-title">Basic Information</div>
-            <div class="grid">
-                <div class="info-item"><div class="info-label">UUID</div><div class="info-value">{info.get('uuid') or 'N/A'}</div></div>
-                <div class="info-item"><div class="info-label">Country</div><div class="info-value">{translate(info.get('country')) or info.get('country') or 'N/A'} ({(info.get('realCountry') or 'N/A').upper()})</div></div>
-                <div class="info-item"><div class="info-label">Mobile</div><div class="info-value">{info.get('mobile') or 'N/A'}</div></div>
-                <div class="info-item"><div class="info-label">Account Type</div><div class="info-value">{translate(info.get('type')) or 'N/A'}</div></div>
-                <div class="info-item"><div class="info-label">Gender</div><div class="info-value">{translate(info.get('sex')) or 'N/A'}</div></div>
-                <div class="info-item"><div class="info-label">Registered Device</div><div class="info-value">{info.get('device') or 'N/A'}</div></div>
-                <div class="info-item"><div class="info-label">Account Status</div><div class="info-value">{'Enabled' if info.get('enabled') else 'Disabled'}</div></div>
-                <div class="info-item"><div class="info-label">Birthday</div><div class="info-value">{info.get('birthday') or 'N/A'}</div></div>
-                <div class="info-item"><div class="info-label">Created (IST 12h)</div><div class="info-value">{format_ist(info.get('createDate'))}</div></div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="section-title">Login Information (IST 12h)</div>
-            <div class="grid">
-                <div class="info-item">
-                    <div class="info-label">Last App Login</div>
-                    <div class="info-value">{format_ist(login.get('appDate'))}</div>
-                    {f'<div><a class="ip-link" href="https://whatismyipaddress.com/ip/{login.get("appIP")}" target="_blank" rel="noreferrer noopener">App Login IP</a></div>' if login.get('appIP') else ''}
-                    <div class="info-label" style="margin-top:6px;">Device Type</div>
-                    <div class="info-value">{login.get('appDevType') or 'N/A'}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Last Web Login</div>
-                    <div class="info-value">{format_ist(login.get('webDate'))}</div>
-                    {f'<div><a class="ip-link" href="https://whatismyipaddress.com/ip/{login.get("webIP")}" target="_blank" rel="noreferrer noopener">Web Login IP</a></div>' if login.get('webIP') else ''}
-                    <div class="info-label" style="margin-top:6px;">App Type</div>
-                    <div class="info-value">{login.get('appType') or 'N/A'}</div>
-                </div>
-            </div>
-        </div>
-        {(
-            '<div class="card"><div class="section-title">Linked Third-Party Accounts (' + str(len(third)) + ')</div><div class="third-list">'
-            + ''.join(
-                [
-                    '<div class="third-item"><div class="info-label">'
-                    + (acc.get("thirdpartyType") or "Unknown").title()
-                    + '</div><div class="info-value" style="font-size:14px;">'
-                    + (acc.get("openId") or "N/A")
-                    + "</div></div>"
-                    for acc in third
-                ]
-            )
-            + "</div></div>"
-        ) if third else ''}
-        <div class="card">
-            <div class="section-title">Full Response</div>
-            <pre>{json.dumps(full_response, ensure_ascii=False, indent=2)}</pre>
-        </div>
-    </div>
-    """
-    return html
-
-
 def main():
     st.set_page_config(page_title="Batch Query Tool", layout="wide", page_icon="🔍")
 
+    # CSS styling to match Flask UI with sidebar
     st.markdown(
         """
         <style>
-        [data-testid="stAppViewContainer"] { background: linear-gradient(135deg, #0e1a2b 0%, #182f55 35%, #1f3c6d 100%); }
-        [data-testid="stSidebar"] { display: none; }
-        .form-card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 16px;
-            box-shadow: 0 12px 40px rgba(9,16,40,0.35);
-            border: 1px solid rgba(255,255,255,0.08);
-            position: sticky;
-            top: 12px;
+        /* Main background */
+        [data-testid="stAppViewContainer"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+
+        /* Main content area - white card */
+        .block-container {
+            padding: 2rem !important;
+            max-width: calc(100% - 3rem) !important;
+            background: white !important;
+            border-radius: 15px !important;
+            margin: 1.5rem 1.5rem 1.5rem 0 !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2) !important;
+        }
+
+        /* Ensure content fills the space */
+        section.main > div {
+            max-width: 100% !important;
+        }
+
+        /* Sidebar styling */
+        [data-testid="stSidebar"] {
+            background: white !important;
+            padding: 1.5rem !important;
+        }
+
+        [data-testid="stSidebar"] > div:first-child {
+            background: white;
+        }
+
+
+        /* Form inputs */
+        .stTextInput > div > div > input,
+        .stSelectbox > div > div > select {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        .stTextInput > div > div > input:focus,
+        .stSelectbox > div > div > select:focus {
+            border-color: #667eea;
+            box-shadow: none;
+        }
+
+        /* Button styling */
+        .stButton > button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 30px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .stButton > button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Secondary button */
+        .stButton > button[kind="secondary"] {
+            background: #6c757d;
+        }
+
+        .stButton > button[kind="secondary"]:hover {
+            background: #5a6268;
+        }
+
+        /* Headers */
+        h1, h2, h3, h4 {
+            color: #333 !important;
+        }
+
+        .main h1 {
+            text-align: center !important;
+            font-size: 2em !important;
+            margin-bottom: 20px !important;
+        }
+
+        /* Sidebar title */
+        [data-testid="stSidebar"] h1 {
+            font-size: 1.5em !important;
+            text-align: left !important;
+        }
+
+        /* Metrics */
+        [data-testid="stMetricValue"] {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        [data-testid="stMetricLabel"] {
+            font-size: 11px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+
+        div[data-testid="metric-container"] {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 10px;
+        }
+
+        /* Compact spacing */
+        .stMarkdown {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Status messages */
+        .stSuccess {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .stError {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        /* Avatar */
+        img {
+            border-radius: 50%;
+            border: 4px solid #667eea;
+        }
+
+        /* Code blocks */
+        code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+
+        /* Labels */
+        label {
+            font-weight: 600 !important;
+            color: #333 !important;
+            font-size: 14px !important;
+        }
+
+        /* IP Link styling */
+        a {
+            color: #667eea !important;
+            text-decoration: none !important;
+            font-weight: 600 !important;
+            font-size: 16px !important;
+        }
+
+        a:hover {
+            text-decoration: underline !important;
+            color: #764ba2 !important;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    col_form, col_result = st.columns([1, 2], gap="large")
+    # Sidebar for query form
+    with st.sidebar:
+        st.markdown("# 🔍 Query Tool")
+        st.markdown("---")
 
-    with col_form:
-        st.markdown("### 🔍 Batch Query Tool  \nIST · 12h")
-        with st.form("query-form", clear_on_submit=False):
-            vals = st.text_input("User ID (vals)", value="177307453")
-            app_id = st.text_input("App ID", value="ikxd")
-            type_choice = st.selectbox(
-                "Type",
-                options=[
-                    ("1", "Type 1"),
-                    ("2", "Type 2"),
-                    ("3", "Type 3 (User)"),
-                    ("4", "Type 4"),
-                ],
-                index=2,
-                format_func=lambda opt: opt[1],
-            )[0]
-            with_oa = st.selectbox(
-                "With OA",
-                options=[("0", "No"), ("1", "Yes")],
-                index=1,
-                format_func=lambda opt: opt[1],
-            )[0]
-            submitted = st.form_submit_button("Query")
+        vals = st.text_input("User ID (vals)", value="177307453")
+        app_id = st.text_input("App ID", value="ikxd")
+        type_choice = st.selectbox("Type", options=list(TYPE_OPTIONS.keys()),
+                                  format_func=lambda x: TYPE_OPTIONS[x], index=2)
+        with_oa = st.selectbox("With OA", options=["No", "Yes"], index=1)
 
-    with col_result:
-        if submitted and vals.strip():
-            with st.spinner("Querying..."):
-                try:
-                    resp = run_query(vals, app_id, type_choice, with_oa)
-                    st.session_state.status_code = resp.status_code
-                    st.session_state.last_result = resp.json()
-                    st.session_state.error = None
-                except Exception as exc:
-                    st.session_state.error = str(exc)
-                    st.session_state.last_result = None
-                    st.session_state.status_code = None
+        st.markdown("")
+        submitted = st.button("🔍 Query", type="primary")
 
-        if "last_result" not in st.session_state:
-            st.session_state.last_result = None
-            st.session_state.status_code = None
-            st.session_state.error = None
+        if st.button("Clear", type="secondary"):
+            st.session_state.clear()
+            st.rerun()
+
+    # Main content area
+    st.markdown("# 🔍 Batch Query Tool")
+
+    # Handle query
+    if submitted and vals.strip():
+        with st.spinner("Loading..."):
+            try:
+                resp = run_query(vals, app_id, type_choice, "1" if with_oa == "Yes" else "0")
+                st.session_state.status_code = resp.status_code
+                st.session_state.last_result = resp.json()
+                st.session_state.error = None
+            except Exception as exc:
+                st.session_state.error = str(exc)
+                st.session_state.last_result = None
+                st.session_state.status_code = None
+
+    # Display results
+    if hasattr(st.session_state, 'status_code') and st.session_state.status_code:
+        st.markdown(f"### Results")
+
+        if st.session_state.status_code == 200:
+            st.success(f"✅ Status: {st.session_state.status_code}")
+        else:
+            st.warning(f"⚠️ Status: {st.session_state.status_code}")
 
         if st.session_state.error:
-            st.error(f"Request failed: {st.session_state.error}")
-
-        if st.session_state.status_code is not None:
-            st.markdown(f"**Status:** {st.session_state.status_code}")
-
-        data = st.session_state.last_result
-        if data:
+            st.error(f"❌ Request failed: {st.session_state.error}")
+        elif st.session_state.last_result:
+            data = st.session_state.last_result
             info_list = data.get("info") or []
             info = info_list[0] if info_list else None
+
             if not info or translate(info.get("type")) == "Does Not Exist":
-                st.warning("User not found.")
+                st.error("**User Not Found:** The requested user ID does not exist in the system.")
             else:
-                html_str = render_result(info, data)
-                st_html(html_str, height=900, scrolling=True)
+                # User Header
+                col1, col2 = st.columns([1, 5])
+                with col1:
+                    if info.get('avatar'):
+                        st.image(info['avatar'], width=100)
+                with col2:
+                    st.markdown(f"### {info.get('nick') or 'N/A'}")
+                    st.caption(f"**VID:** `{info.get('vid') or 'N/A'}` | **UUID:** `{info.get('uuid') or 'N/A'}`")
+                    status = "✓ Enabled" if info.get('enabled') else "✗ Disabled"
+                    st.caption(f"**Status:** {status}")
+
+                st.markdown("---")
+
+                # Info Grid
+                st.markdown("#### Basic Information")
+                col1, col2, col3, col4 = st.columns(4)
+
+                with col1:
+                    st.metric("UUID", info.get('uuid') or 'N/A')
+                    st.metric("Mobile", info.get('mobile') or 'N/A')
+
+                with col2:
+                    st.metric("Account Type", translate(info.get('type')) or 'N/A')
+                    country = translate(info.get('country')) or info.get('country') or 'N/A'
+                    real_country = (info.get('realCountry') or 'N/A').upper()
+                    st.metric("Country", f"{country} ({real_country})")
+
+                with col3:
+                    st.metric("Gender", translate(info.get('sex')) or 'N/A')
+                    st.metric("Device", info.get('device') or 'N/A')
+
+                with col4:
+                    st.metric("Birthday", info.get('birthday') or 'N/A')
+                    st.metric("Created", format_timestamp(info.get('createDate')))
+
+                # Login info
+                login = info.get("loginInfo") or {}
+                if login:
+                    st.markdown("---")
+                    st.markdown("#### Login Activity")
+
+                    col1, col2, col3, col4 = st.columns(4)
+
+                    with col1:
+                        st.metric("Last App Login", format_timestamp(login.get('appDate')))
+
+                    with col2:
+                        app_ip = login.get('appIP')
+                        if app_ip:
+                            st.markdown('<div style="background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 10px;">', unsafe_allow_html=True)
+                            st.markdown('<div style="font-size: 11px; color: #6c757d; text-transform: uppercase; margin-bottom: 5px;">APP IP</div>', unsafe_allow_html=True)
+                            st.markdown(f'<div><a href="https://whatismyipaddress.com/ip/{app_ip}" target="_blank">{app_ip}</a></div>', unsafe_allow_html=True)
+                            st.markdown('</div>', unsafe_allow_html=True)
+                        else:
+                            st.metric("App IP", "N/A")
+
+                    with col3:
+                        st.metric("Last Web Login", format_timestamp(login.get('webDate')))
+
+                    with col4:
+                        web_ip = login.get('webIP')
+                        if web_ip:
+                            st.markdown('<div style="background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 10px;">', unsafe_allow_html=True)
+                            st.markdown('<div style="font-size: 11px; color: #6c757d; text-transform: uppercase; margin-bottom: 5px;">WEB IP</div>', unsafe_allow_html=True)
+                            st.markdown(f'<div><a href="https://whatismyipaddress.com/ip/{web_ip}" target="_blank">{web_ip}</a></div>', unsafe_allow_html=True)
+                            st.markdown('</div>', unsafe_allow_html=True)
+                        else:
+                            st.metric("Web IP", "N/A")
+
+                    if login.get('appDevID'):
+                        st.caption("**Device ID:**")
+                        st.code(login.get('appDevID'), language=None)
+
+                # Third-party accounts
+                third = info.get("thirdpartyList") or []
+                if third:
+                    st.markdown("---")
+                    st.markdown(f"#### 🔗 Linked Third-Party Accounts ({len(third)})")
+
+                    cols = st.columns(min(4, len(third)))
+                    for idx, acc in enumerate(third):
+                        with cols[idx % len(cols)]:
+                            account_type = (acc.get("thirdpartyType") or "Unknown").title()
+                            st.caption(f"**{account_type}**")
+                            st.code(acc.get("openId") or "N/A", language=None)
+
+                # Full JSON Response
+                st.markdown("---")
+                with st.expander("📄 Full Response"):
+                    st.json(data)
+    else:
+        # Welcome message
+        st.markdown("### Welcome")
+        st.info("👈 Enter a search value in the sidebar and click **Query** to view user information")
 
 
 if __name__ == "__main__":
