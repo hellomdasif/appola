@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Streamlit UI for Batch Query with left-side control panel and IST 12h times."""
+"""Streamlit UI for Batch Query with left panel form and styled results."""
 
 import json
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import requests
 import streamlit as st
+from streamlit.components.v1 import html as st_html
 
-# Hardcoded upstream endpoint (not exposed to end users).
+# Hardcoded upstream endpoint (kept server-side)
 ENDPOINT_URL = "https://uaas.kaixindou.net/service/batchQuery"
 
 HEADERS = {
@@ -25,29 +26,8 @@ HEADERS = {
     "Sec-Fetch-Dest": "empty",
     "Referer": "https://uaas.kaixindou.net/html/tool.html",
     "Accept-Encoding": "gzip, deflate, br",
-    "Priority": "u=1, i"
+    "Priority": "u=1, i",
 }
-
-
-def format_ist(value):
-    """Format timestamps to IST 12-hour with seconds."""
-    if value is None or value == "":
-        return "N/A"
-    try:
-        # Accept seconds or ms.
-        if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace(".", "", 1).isdigit()):
-            value_num = float(value)
-            timestamp = value_num if value_num > 1e12 else value_num * 1000
-            dt = datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc)
-        else:
-            dt = datetime.fromisoformat(str(value))
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-        ist = timezone(timedelta(hours=5, minutes=30))
-        dt_ist = dt.astimezone(ist)
-        return dt_ist.strftime("%d %b %Y, %I:%M:%S %p")
-    except Exception:
-        return str(value)
 
 
 def translate(text):
@@ -61,6 +41,25 @@ def translate(text):
     if text is None:
         return None
     return translations.get(text, text)
+
+
+def format_ist(value):
+    if value is None or value == "":
+        return "N/A"
+    try:
+        if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace(".", "", 1).isdigit()):
+            value_num = float(value)
+            timestamp = value_num if value_num > 1e12 else value_num * 1000
+            dt = datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc)
+        else:
+            dt = datetime.fromisoformat(str(value))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+        ist = timezone(timedelta(hours=5, minutes=30))
+        dt_ist = dt.astimezone(ist)
+        return dt_ist.strftime("%d %b %Y, %I:%M:%S %p")
+    except Exception:
+        return str(value)
 
 
 def run_query(vals, app_id, type_choice, with_oa):
@@ -79,58 +78,147 @@ def run_query(vals, app_id, type_choice, with_oa):
     return resp
 
 
+def render_result(info, full_response):
+    login = info.get("loginInfo") or {}
+    third = info.get("thirdpartyList") or []
+    html = f"""
+    <style>
+    body {{ margin:0; padding:0; font-family:'Manrope','Inter',system-ui,sans-serif; }}
+    .wrap {{
+        background: linear-gradient(135deg, #0e1a2b 0%, #182f55 35%, #1f3c6d 100%);
+        padding: 16px;
+        color: #0d1a2b;
+    }}
+    .card {{
+        background:#fff;
+        border-radius:16px;
+        padding:18px;
+        box-shadow:0 14px 45px rgba(9,16,40,0.35);
+        border:1px solid rgba(255,255,255,0.06);
+        margin-bottom:12px;
+    }}
+    .header {{
+        display:flex;
+        align-items:center;
+        gap:14px;
+        background: linear-gradient(135deg, #0d1a2b 0%, #1c3053 100%);
+        color:#f4f7ff;
+        border-radius:14px;
+        padding:14px;
+    }}
+    .avatar {{
+        width:86px; height:86px; border-radius:14px; object-fit:cover;
+        border:3px solid rgba(255,255,255,0.75);
+    }}
+    .pill {{
+        display:inline-block;
+        padding:8px 10px;
+        background: rgba(255,255,255,0.12);
+        border-radius:10px;
+        color:#d9e5ff;
+        margin-right:6px;
+        font-size:12px;
+    }}
+    .grid {{
+        display:grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap:12px;
+        margin-top:10px;
+    }}
+    .info-item {{
+        background:#f6f8fb;
+        border-radius:12px;
+        padding:12px;
+        border:1px solid #e3e8f2;
+    }}
+    .info-label {{ font-size:12px; color:#6b768b; text-transform:uppercase; margin-bottom:4px; }}
+    .info-value {{ font-size:16px; font-weight:700; color:#0f1d33; word-break:break-all; }}
+    .section-title {{ font-size:18px; font-weight:800; color:#0f1d33; margin:12px 0 6px 0; }}
+    .third-list {{ display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:8px; }}
+    .third-item {{ border:1px solid #e3e8f2; border-radius:12px; padding:10px; background:#fff; }}
+    a.ip-link {{ color:#5b8def; text-decoration:none; font-weight:700; }}
+    a.ip-link:hover {{ text-decoration:underline; }}
+    pre {{ background:#0e1624; color:#e0ecff; padding:12px; border-radius:12px; overflow:auto; }}
+    </style>
+    <div class="wrap">
+        <div class="card header">
+            {'<img src="'+info.get('avatar','')+'" class="avatar" />' if info.get('avatar') else ''}
+            <div>
+                <div style="font-size:22px;font-weight:800;">{info.get('nick') or 'N/A'}</div>
+                <div>
+                    <span class="pill">VID: {info.get('vid') or 'N/A'}</span>
+                    <span class="pill">User ID: {info.get('uuid') or 'N/A'}</span>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="section-title">Basic Information</div>
+            <div class="grid">
+                <div class="info-item"><div class="info-label">UUID</div><div class="info-value">{info.get('uuid') or 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">Country</div><div class="info-value">{translate(info.get('country')) or info.get('country') or 'N/A'} ({(info.get('realCountry') or 'N/A').upper()})</div></div>
+                <div class="info-item"><div class="info-label">Mobile</div><div class="info-value">{info.get('mobile') or 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">Account Type</div><div class="info-value">{translate(info.get('type')) or 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">Gender</div><div class="info-value">{translate(info.get('sex')) or 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">Registered Device</div><div class="info-value">{info.get('device') or 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">Account Status</div><div class="info-value">{'Enabled' if info.get('enabled') else 'Disabled'}</div></div>
+                <div class="info-item"><div class="info-label">Birthday</div><div class="info-value">{info.get('birthday') or 'N/A'}</div></div>
+                <div class="info-item"><div class="info-label">Created (IST 12h)</div><div class="info-value">{format_ist(info.get('createDate'))}</div></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="section-title">Login Information (IST 12h)</div>
+            <div class="grid">
+                <div class="info-item">
+                    <div class="info-label">Last App Login</div>
+                    <div class="info-value">{format_ist(login.get('appDate'))}</div>
+                    {f'<div><a class="ip-link" href="https://whatismyipaddress.com/ip/{login.get("appIP")}" target="_blank" rel="noreferrer noopener">App Login IP</a></div>' if login.get('appIP') else ''}
+                    <div class="info-label" style="margin-top:6px;">Device Type</div>
+                    <div class="info-value">{login.get('appDevType') or 'N/A'}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Last Web Login</div>
+                    <div class="info-value">{format_ist(login.get('webDate'))}</div>
+                    {f'<div><a class="ip-link" href="https://whatismyipaddress.com/ip/{login.get("webIP")}" target="_blank" rel="noreferrer noopener">Web Login IP</a></div>' if login.get('webIP') else ''}
+                    <div class="info-label" style="margin-top:6px;">App Type</div>
+                    <div class="info-value">{login.get('appType') or 'N/A'}</div>
+                </div>
+            </div>
+        </div>
+        {'<div class="card"><div class="section-title">Linked Third-Party Accounts ('+str(len(third))+')</div><div class="third-list">' + ''.join([f'<div class=\"third-item\"><div class=\"info-label\">{(acc.get(\"thirdpartyType\") or \"Unknown\").title()}</div><div class=\"info-value\" style=\"font-size:14px;\">{acc.get(\"openId\") or \"N/A\"}</div></div>' for acc in third]) + '</div></div>' if third else ''}
+        <div class="card">
+            <div class="section-title">Full Response</div>
+            <pre>{json.dumps(full_response, ensure_ascii=False, indent=2)}</pre>
+        </div>
+    </div>
+    """
+    return html
+
+
 def main():
     st.set_page_config(page_title="Batch Query Tool", layout="wide", page_icon="🔍")
 
     st.markdown(
         """
         <style>
-        body {
-            background: linear-gradient(135deg, #0e1a2b 0%, #182f55 35%, #1f3c6d 100%) !important;
-        }
-        .block-container {
-            padding-top: 1.5rem;
-            padding-bottom: 1.5rem;
-        }
-        .card {
+        [data-testid="stAppViewContainer"] { background: linear-gradient(135deg, #0e1a2b 0%, #182f55 35%, #1f3c6d 100%); }
+        [data-testid="stSidebar"] { display: none; }
+        .form-card {
             background: #ffffff;
-            border-radius: 14px;
-            padding: 18px;
-            box-shadow: 0 14px 45px rgba(9,16,40,0.35);
-            border: 1px solid rgba(255,255,255,0.06);
-        }
-        .pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 12px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 12px;
-            color: #dce7ff;
-            border: 1px solid rgba(255,255,255,0.12);
-        }
-        .header {
-            background: linear-gradient(135deg, #0d1a2b 0%, #1c3053 100%);
-            color: #f4f7ff;
-            border-radius: 14px;
-            padding: 14px;
-        }
-        a.ip-link {
-            color: #5b8def !important;
-            font-weight: 700;
-            text-decoration: none;
-        }
-        a.ip-link:hover {
-            text-decoration: underline;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 12px 40px rgba(9,16,40,0.35);
+            border: 1px solid rgba(255,255,255,0.08);
+            position: sticky;
+            top: 12px;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    left_col, right_col = st.columns([1, 2])
+    col_form, col_result = st.columns([1, 2], gap="large")
 
-    with left_col:
+    with col_form:
         st.markdown("### 🔍 Batch Query Tool  \nIST · 12h")
         with st.form("query-form", clear_on_submit=False):
             vals = st.text_input("User ID (vals)", value="177307453")
@@ -152,19 +240,9 @@ def main():
                 index=1,
                 format_func=lambda opt: opt[1],
             )[0]
-
             submitted = st.form_submit_button("Query")
-            clear = st.form_submit_button("Clear")
 
-        if clear:
-            st.experimental_rerun()
-
-    with right_col:
-        if "last_result" not in st.session_state:
-            st.session_state.last_result = None
-            st.session_state.status_code = None
-            st.session_state.error = None
-
+    with col_result:
         if submitted and vals.strip():
             with st.spinner("Querying..."):
                 try:
@@ -176,6 +254,11 @@ def main():
                     st.session_state.error = str(exc)
                     st.session_state.last_result = None
                     st.session_state.status_code = None
+
+        if "last_result" not in st.session_state:
+            st.session_state.last_result = None
+            st.session_state.status_code = None
+            st.session_state.error = None
 
         if st.session_state.error:
             st.error(f"Request failed: {st.session_state.error}")
@@ -190,62 +273,8 @@ def main():
             if not info or translate(info.get("type")) == "Does Not Exist":
                 st.warning("User not found.")
             else:
-                with st.container():
-                    st.markdown('<div class="card header">', unsafe_allow_html=True)
-                    avatar = info.get("avatar")
-                    cols = st.columns([1, 4])
-                    if avatar:
-                        cols[0].image(avatar, width=90)
-                    with cols[1]:
-                        st.markdown(f"#### {info.get('nick') or 'N/A'}")
-                        st.markdown(
-                            f"""<div class="pill">VID: {info.get('vid') or 'N/A'}</div>
-                            <div class="pill" style="margin-left:8px;">User ID: {info.get('uuid') or 'N/A'}</div>""",
-                            unsafe_allow_html=True,
-                        )
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-                st.markdown("#### Basic Information")
-                basic_cols = st.columns(3)
-                basic_cols[0].metric("UUID", info.get("uuid") or "N/A")
-                basic_cols[1].metric("Country", f"{translate(info.get('country')) or info.get('country') or 'N/A'} ({(info.get('realCountry') or 'N/A').upper()})")
-                basic_cols[2].metric("Mobile", info.get("mobile") or "N/A")
-
-                basic_cols2 = st.columns(3)
-                basic_cols2[0].metric("Account Type", translate(info.get("type")) or "N/A")
-                basic_cols2[1].metric("Gender", translate(info.get("sex")) or "N/A")
-                basic_cols2[2].metric("Registered Device", info.get("device") or "N/A")
-
-                basic_cols3 = st.columns(3)
-                basic_cols3[0].metric("Account Status", "Enabled" if info.get("enabled") else "Disabled")
-                basic_cols3[1].metric("Birthday", info.get("birthday") or "N/A")
-                basic_cols3[2].metric("Created (IST 12h)", format_ist(info.get("createDate")))
-
-                login_info = info.get("loginInfo") or {}
-                st.markdown("#### Login Information (IST 12h)")
-                login_cols = st.columns(2)
-                login_cols[0].markdown(f"**Last App Login:** {format_ist(login_info.get('appDate'))}")
-                app_ip = login_info.get("appIP")
-                if app_ip:
-                    login_cols[0].markdown(f"[App Login IP]({f'https://whatismyipaddress.com/ip/{app_ip}'})", unsafe_allow_html=True)
-                login_cols[0].markdown(f"Device Type: {login_info.get('appDevType') or 'N/A'}")
-
-                login_cols[1].markdown(f"**Last Web Login:** {format_ist(login_info.get('webDate'))}")
-                web_ip = login_info.get("webIP")
-                if web_ip:
-                    login_cols[1].markdown(f"[Web Login IP]({f'https://whatismyipaddress.com/ip/{web_ip}'})", unsafe_allow_html=True)
-                login_cols[1].markdown(f"App Type: {login_info.get('appType') or 'N/A'}")
-
-                third_list = info.get("thirdpartyList") or []
-                if third_list:
-                    st.markdown("#### Linked Third-Party Accounts")
-                    for account in third_list:
-                        cols_tp = st.columns([1, 3])
-                        cols_tp[0].write(account.get("thirdpartyType", "Unknown"))
-                        cols_tp[1].write(account.get("openId") or "N/A")
-
-                st.markdown("#### Full Response")
-                st.code(json.dumps(data, ensure_ascii=False, indent=2), language="json")
+                html_str = render_result(info, data)
+                st_html(html_str, height=900, scrolling=True)
 
 
 if __name__ == "__main__":
