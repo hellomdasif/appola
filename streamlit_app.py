@@ -184,7 +184,20 @@ def render_result(info, full_response):
                 </div>
             </div>
         </div>
-        {'<div class="card"><div class="section-title">Linked Third-Party Accounts ('+str(len(third))+')</div><div class="third-list">' + ''.join([f'<div class=\"third-item\"><div class=\"info-label\">{(acc.get(\"thirdpartyType\") or \"Unknown\").title()}</div><div class=\"info-value\" style=\"font-size:14px;\">{acc.get(\"openId\") or \"N/A\"}</div></div>' for acc in third]) + '</div></div>' if third else ''}
+        {(
+            '<div class="card"><div class="section-title">Linked Third-Party Accounts (' + str(len(third)) + ')</div><div class="third-list">'
+            + ''.join(
+                [
+                    '<div class="third-item"><div class="info-label">'
+                    + (acc.get("thirdpartyType") or "Unknown").title()
+                    + '</div><div class="info-value" style="font-size:14px;">'
+                    + (acc.get("openId") or "N/A")
+                    + "</div></div>"
+                    for acc in third
+                ]
+            )
+            + "</div></div>"
+        ) if third else ''}
         <div class="card">
             <div class="section-title">Full Response</div>
             <pre>{json.dumps(full_response, ensure_ascii=False, indent=2)}</pre>
