@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Streamlit Web UI for batch query requests."""
+"""Streamlit UI for Batch Query with left-side control panel and IST 12h times."""
 
 import json
+from datetime import datetime, timezone, timedelta
+
 import requests
 import streamlit as st
 
-# Configuration
-DEFAULT_URL = "https://uaas.kaixindou.net/service/batchQuery"
+# Hardcoded upstream endpoint (not exposed to end users).
+ENDPOINT_URL = "https://uaas.kaixindou.net/service/batchQuery"
 
 HEADERS = {
     "Sec-Ch-Ua-Platform": '"Windows"',
@@ -26,237 +28,225 @@ HEADERS = {
     "Priority": "u=1, i"
 }
 
-# Translation mapping
-TRANSLATIONS = {
-    '普通账号': 'Regular Account',
-    '不存在': 'Does Not Exist',
-    '印度': 'India',
-    '男': 'Male',
-    '女': 'Female'
-}
+
+def format_ist(value):
+    """Format timestamps to IST 12-hour with seconds."""
+    if value is None or value == "":
+        return "N/A"
+    try:
+        # Accept seconds or ms.
+        if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace(".", "", 1).isdigit()):
+            value_num = float(value)
+            timestamp = value_num if value_num > 1e12 else value_num * 1000
+            dt = datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc)
+        else:
+            dt = datetime.fromisoformat(str(value))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+        ist = timezone(timedelta(hours=5, minutes=30))
+        dt_ist = dt.astimezone(ist)
+        return dt_ist.strftime("%d %b %Y, %I:%M:%S %p")
+    except Exception:
+        return str(value)
+
 
 def translate(text):
-    """Translate Chinese text to English."""
-    if not text:
-        return text
-    return TRANSLATIONS.get(text, text)
+    translations = {
+        "普通账号": "Regular Account",
+        "不存在": "Does Not Exist",
+        "印度": "India",
+        "男": "Male",
+        "女": "Female",
+    }
+    if text is None:
+        return None
+    return translations.get(text, text)
 
-def make_query(endpoint_url, params):
-    """Make the API request."""
-    try:
-        response = requests.post(
-            endpoint_url,
-            data=params,
-            headers=HEADERS,
-            timeout=10
-        )
-        return {
-            'success': True,
-            'status_code': response.status_code,
-            'response': response.json()
-        }
-    except Exception as e:
-        return {
-            'success': False,
-            'error': str(e)
-        }
 
-def display_user_info(info):
-    """Display user information in a nice format."""
-    if not info or translate(info.get('type', '')) == 'Does Not Exist':
-        st.error("User Not Found: The requested user ID does not exist in the system.")
-        return
+def run_query(vals, app_id, type_choice, with_oa):
+    params = {
+        "appId": app_id,
+        "with_oa": with_oa,
+        "type": type_choice,
+        "vals": vals.strip(),
+    }
+    resp = requests.post(
+        ENDPOINT_URL,
+        data=params,
+        headers=HEADERS,
+        timeout=15,
+    )
+    return resp
 
-    # User header with avatar
-    col1, col2 = st.columns([1, 3])
-    with col1:
-        if info.get('avatar'):
-            st.image(info['avatar'], width=100)
-    with col2:
-        st.subheader(info.get('nick', 'N/A'))
-        st.text(f"VID: {info.get('vid', 'N/A')}")
-
-    st.markdown("---")
-
-    # Device ID (highlighted)
-    if info.get('loginInfo', {}).get('appDevID'):
-        st.success("🔑 Device ID")
-        device_id = info['loginInfo']['appDevID']
-        st.code(device_id, language=None)
-        st.caption("Click the copy button on the right to copy →")
-
-    # Basic Information
-    st.subheader("📋 Basic Information")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.metric("UUID", info.get('uuid', 'N/A'))
-        st.metric("Account Type", translate(info.get('type', 'N/A')))
-        st.metric("Gender", translate(info.get('sex', 'N/A')))
-
-    with col2:
-        country = translate(info.get('country', 'N/A'))
-        country_code = info.get('realCountry', 'N/A').upper()
-        st.metric("Country", f"{country} ({country_code})")
-        st.metric("Registered Device", info.get('device', 'N/A'))
-        st.metric("Account Status", "✓ Enabled" if info.get('enabled') else "✗ Disabled")
-
-    with col3:
-        mobile = info.get('mobile', 'N/A')
-        if mobile and '*' in mobile:
-            st.metric("Mobile Number (Masked)", mobile)
-            if mobile.startswith('91'):
-                st.caption("🇮🇳 Indian number")
-        else:
-            st.metric("Mobile Number", mobile)
-        st.metric("Birthday", info.get('birthday', 'N/A'))
-        if info.get('createDate'):
-            st.metric("Account Created", info['createDate'][:10])
-
-    # Login Information
-    if info.get('loginInfo'):
-        st.subheader("🔐 Login Information")
-        login_info = info['loginInfo']
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown("**App Login**")
-            if login_info.get('appDate'):
-                import datetime
-                app_login = datetime.datetime.fromtimestamp(login_info['appDate'])
-                st.text(f"Last Login: {app_login.strftime('%Y-%m-%d %H:%M:%S')}")
-            st.text(f"IP: {login_info.get('appIP', 'N/A')}")
-            st.text(f"Device Type: {login_info.get('appDevType', 'N/A')}")
-            st.text(f"App Type: {login_info.get('appType', 'N/A').capitalize()}")
-
-        with col2:
-            st.markdown("**Web Login**")
-            if login_info.get('webDate'):
-                import datetime
-                web_login = datetime.datetime.fromtimestamp(login_info['webDate'])
-                st.text(f"Last Login: {web_login.strftime('%Y-%m-%d %H:%M:%S')}")
-            st.text(f"IP: {login_info.get('webIP', 'N/A')}")
-
-    # Third-party accounts
-    if info.get('thirdpartyList'):
-        st.subheader(f"🔗 Linked Third-Party Accounts ({len(info['thirdpartyList'])})")
-
-        for account in info['thirdpartyList']:
-            account_type = account.get('thirdpartyType', 'Unknown').capitalize()
-            open_id = account.get('openId', 'N/A')
-
-            with st.expander(f"{account_type}: {open_id}"):
-                st.code(open_id, language=None)
-
-    # Full JSON response
-    st.subheader("📄 Full Response")
-    st.json(info)
 
 def main():
-    """Main Streamlit app."""
-    st.set_page_config(
-        page_title="Batch Query Tool",
-        page_icon="🔍",
-        layout="wide"
+    st.set_page_config(page_title="Batch Query Tool", layout="wide", page_icon="🔍")
+
+    st.markdown(
+        """
+        <style>
+        body {
+            background: linear-gradient(135deg, #0e1a2b 0%, #182f55 35%, #1f3c6d 100%) !important;
+        }
+        .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 14px 45px rgba(9,16,40,0.35);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: #dce7ff;
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .header {
+            background: linear-gradient(135deg, #0d1a2b 0%, #1c3053 100%);
+            color: #f4f7ff;
+            border-radius: 14px;
+            padding: 14px;
+        }
+        a.ip-link {
+            color: #5b8def !important;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        a.ip-link:hover {
+            text-decoration: underline;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
     )
 
-    st.title("🔍 Batch Query Tool")
-    st.markdown("Query user information from the API endpoint")
+    left_col, right_col = st.columns([1, 2])
 
-    # Sidebar for configuration
-    with st.sidebar:
-        st.header("⚙️ Configuration")
+    with left_col:
+        st.markdown("### 🔍 Batch Query Tool  \nIST · 12h")
+        with st.form("query-form", clear_on_submit=False):
+            vals = st.text_input("User ID (vals)", value="177307453")
+            app_id = st.text_input("App ID", value="ikxd")
+            type_choice = st.selectbox(
+                "Type",
+                options=[
+                    ("1", "Type 1"),
+                    ("2", "Type 2"),
+                    ("3", "Type 3 (User)"),
+                    ("4", "Type 4"),
+                ],
+                index=2,
+                format_func=lambda opt: opt[1],
+            )[0]
+            with_oa = st.selectbox(
+                "With OA",
+                options=[("0", "No"), ("1", "Yes")],
+                index=1,
+                format_func=lambda opt: opt[1],
+            )[0]
 
-        endpoint = st.text_input(
-            "API Endpoint URL",
-            value=DEFAULT_URL,
-            help="Enter the API endpoint URL"
-        )
+            submitted = st.form_submit_button("Query")
+            clear = st.form_submit_button("Clear")
 
-        if st.button("Reset to Default"):
-            endpoint = DEFAULT_URL
-            st.rerun()
+        if clear:
+            st.experimental_rerun()
 
-        st.markdown("---")
+    with right_col:
+        if "last_result" not in st.session_state:
+            st.session_state.last_result = None
+            st.session_state.status_code = None
+            st.session_state.error = None
 
-        vals = st.text_input(
-            "User ID (vals)",
-            value="177307453",
-            help="Enter the user ID to query"
-        )
+        if submitted and vals.strip():
+            with st.spinner("Querying..."):
+                try:
+                    resp = run_query(vals, app_id, type_choice, with_oa)
+                    st.session_state.status_code = resp.status_code
+                    st.session_state.last_result = resp.json()
+                    st.session_state.error = None
+                except Exception as exc:
+                    st.session_state.error = str(exc)
+                    st.session_state.last_result = None
+                    st.session_state.status_code = None
 
-        app_id = st.text_input(
-            "App ID",
-            value="ikxd"
-        )
+        if st.session_state.error:
+            st.error(f"Request failed: {st.session_state.error}")
 
-        query_type = st.selectbox(
-            "Type",
-            options=[1, 2, 3, 4],
-            index=2,
-            help="Query type (3 = User)"
-        )
+        if st.session_state.status_code is not None:
+            st.markdown(f"**Status:** {st.session_state.status_code}")
 
-        with_oa = st.selectbox(
-            "With OA",
-            options=[0, 1],
-            index=1
-        )
-
-        st.markdown("---")
-
-        query_button = st.button("🚀 Query", type="primary", use_container_width=True)
-
-    # Main content area
-    if query_button:
-        if not vals:
-            st.error("Please enter a User ID")
-            return
-
-        params = {
-            'appId': app_id,
-            'with_oa': str(with_oa),
-            'type': str(query_type),
-            'vals': vals
-        }
-
-        with st.spinner('Querying API...'):
-            result = make_query(endpoint, params)
-
-        if result['success']:
-            st.success(f"✓ Status Code: {result['status_code']}")
-            st.caption(f"Endpoint: {endpoint}")
-
-            st.markdown("---")
-
-            if result['response'].get('info'):
-                info = result['response']['info'][0]
-                display_user_info(info)
+        data = st.session_state.last_result
+        if data:
+            info_list = data.get("info") or []
+            info = info_list[0] if info_list else None
+            if not info or translate(info.get("type")) == "Does Not Exist":
+                st.warning("User not found.")
             else:
-                st.warning("No user information found in response")
-                st.json(result['response'])
-        else:
-            st.error(f"Request Failed: {result['error']}")
-    else:
-        # Welcome message
-        st.info("👈 Configure the query parameters in the sidebar and click **Query** to start")
+                with st.container():
+                    st.markdown('<div class="card header">', unsafe_allow_html=True)
+                    avatar = info.get("avatar")
+                    cols = st.columns([1, 4])
+                    if avatar:
+                        cols[0].image(avatar, width=90)
+                    with cols[1]:
+                        st.markdown(f"#### {info.get('nick') or 'N/A'}")
+                        st.markdown(
+                            f"""<div class="pill">VID: {info.get('vid') or 'N/A'}</div>
+                            <div class="pill" style="margin-left:8px;">User ID: {info.get('uuid') or 'N/A'}</div>""",
+                            unsafe_allow_html=True,
+                        )
+                    st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown("### Features")
-        col1, col2, col3 = st.columns(3)
+                st.markdown("#### Basic Information")
+                basic_cols = st.columns(3)
+                basic_cols[0].metric("UUID", info.get("uuid") or "N/A")
+                basic_cols[1].metric("Country", f"{translate(info.get('country')) or info.get('country') or 'N/A'} ({(info.get('realCountry') or 'N/A').upper()})")
+                basic_cols[2].metric("Mobile", info.get("mobile") or "N/A")
 
-        with col1:
-            st.markdown("**🎯 Custom Endpoints**")
-            st.markdown("Query any API endpoint")
+                basic_cols2 = st.columns(3)
+                basic_cols2[0].metric("Account Type", translate(info.get("type")) or "N/A")
+                basic_cols2[1].metric("Gender", translate(info.get("sex")) or "N/A")
+                basic_cols2[2].metric("Registered Device", info.get("device") or "N/A")
 
-        with col2:
-            st.markdown("**📊 Rich Display**")
-            st.markdown("Beautiful data visualization")
+                basic_cols3 = st.columns(3)
+                basic_cols3[0].metric("Account Status", "Enabled" if info.get("enabled") else "Disabled")
+                basic_cols3[1].metric("Birthday", info.get("birthday") or "N/A")
+                basic_cols3[2].metric("Created (IST 12h)", format_ist(info.get("createDate")))
 
-        with col3:
-            st.markdown("**📋 Easy Copy**")
-            st.markdown("Copy data with one click")
+                login_info = info.get("loginInfo") or {}
+                st.markdown("#### Login Information (IST 12h)")
+                login_cols = st.columns(2)
+                login_cols[0].markdown(f"**Last App Login:** {format_ist(login_info.get('appDate'))}")
+                app_ip = login_info.get("appIP")
+                if app_ip:
+                    login_cols[0].markdown(f"[App Login IP]({f'https://whatismyipaddress.com/ip/{app_ip}'})", unsafe_allow_html=True)
+                login_cols[0].markdown(f"Device Type: {login_info.get('appDevType') or 'N/A'}")
+
+                login_cols[1].markdown(f"**Last Web Login:** {format_ist(login_info.get('webDate'))}")
+                web_ip = login_info.get("webIP")
+                if web_ip:
+                    login_cols[1].markdown(f"[Web Login IP]({f'https://whatismyipaddress.com/ip/{web_ip}'})", unsafe_allow_html=True)
+                login_cols[1].markdown(f"App Type: {login_info.get('appType') or 'N/A'}")
+
+                third_list = info.get("thirdpartyList") or []
+                if third_list:
+                    st.markdown("#### Linked Third-Party Accounts")
+                    for account in third_list:
+                        cols_tp = st.columns([1, 3])
+                        cols_tp[0].write(account.get("thirdpartyType", "Unknown"))
+                        cols_tp[1].write(account.get("openId") or "N/A")
+
+                st.markdown("#### Full Response")
+                st.code(json.dumps(data, ensure_ascii=False, indent=2), language="json")
+
 
 if __name__ == "__main__":
     main()

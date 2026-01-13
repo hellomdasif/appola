@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Batch Query Tool</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -11,31 +14,75 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Manrope', 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0e1a2b 0%, #182f55 35%, #1f3c6d 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px;
+            color: #0d1a2b;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .left-panel {
+            position: sticky;
+            top: 18px;
+            align-self: start;
         }
 
         .container {
-            max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
         }
 
-        h1 {
-            color: white;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        .page-title {
+            color: #f4f7ff;
+            margin-bottom: 14px;
+            font-size: 24px;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-title span {
+            background: rgba(255,255,255,0.12);
+            padding: 5px 8px;
+            border-radius: 10px;
+            font-size: 12px;
         }
 
         .card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 50px rgba(9, 16, 40, 0.35);
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .glow {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glow::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(102,126,234,0.12), rgba(79,209,197,0.12));
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
         }
 
         .form-group {
@@ -51,52 +98,56 @@
 
         input, select {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            padding: 12px 14px;
+            border: 1px solid #e6e8ee;
+            border-radius: 12px;
             font-size: 14px;
-            transition: border-color 0.3s;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: #f9fbff;
         }
 
         input:focus, select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #5b8def;
+            box-shadow: 0 6px 18px rgba(91, 141, 239, 0.25);
         }
 
         .button-group {
             display: flex;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 10px;
         }
 
         button {
             flex: 1;
             padding: 14px 30px;
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 15px;
+            font-weight: 700;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #5b8def 0%, #7ad7f0 100%);
             color: white;
+            box-shadow: 0 10px 25px rgba(91, 141, 239, 0.35);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 12px 30px rgba(91, 141, 239, 0.45);
         }
 
         .btn-secondary {
-            background: #6c757d;
-            color: white;
+            background: #eef2f8;
+            color: #253043;
+            border: 1px solid #dbe1eb;
         }
 
         .btn-secondary:hover {
-            background: #5a6268;
+            background: #e3e8f2;
         }
 
         #loading {
@@ -125,143 +176,132 @@
         }
 
         .result-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0d1a2b 0%, #1f3c6d 100%);
             color: white;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 18px;
+            border-radius: 12px;
             margin-bottom: 20px;
-        }
-
-        .result-header h2 {
-            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .status-code {
-            display: inline-block;
-            padding: 5px 15px;
-            background: rgba(255,255,255,0.2);
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.15);
             border-radius: 20px;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 13px;
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 8px;
         }
 
         .info-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
+            background: #f6f8fb;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #e3e8f2;
             position: relative;
         }
 
         .info-label {
-            font-size: 12px;
-            color: #6c757d;
+            font-size: 11px;
+            color: #6b768b;
             text-transform: uppercase;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
+            letter-spacing: 0.4px;
         }
 
         .info-value {
             font-size: 16px;
-            font-weight: 600;
-            color: #333;
+            font-weight: 700;
+            color: #0f1d33;
             word-break: break-all;
         }
 
         .device-id {
-            background: #fff3cd;
-            border-left-color: #ffc107;
-            position: relative;
+            background: #f0fbf3;
+            border: 1px solid #cbe9d5;
         }
 
         .copy-btn {
             position: absolute;
             top: 10px;
             right: 10px;
-            padding: 5px 10px;
-            background: #667eea;
+            padding: 6px 10px;
+            background: #0f1d33;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 11px;
-            font-weight: 600;
-            transition: all 0.2s;
-            opacity: 0.7;
-        }
-
-        .device-id .copy-btn {
-            background: #ffc107;
-            color: #333;
-            opacity: 1;
+            font-weight: 700;
+            transition: all 0.15s;
+            opacity: 0.8;
         }
 
         .copy-btn:hover {
             opacity: 1;
-            transform: scale(1.05);
-        }
-
-        .device-id .copy-btn:hover {
-            background: #e0a800;
+            transform: translateY(-1px);
         }
 
         .copy-btn.copied {
-            background: #28a745 !important;
+            background: #1fb56c !important;
             color: white !important;
         }
 
-        .third-party-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-
-        .third-party-section h3 {
-            margin-bottom: 15px;
-            color: #333;
+        .section-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f1d33;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .json-view {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 20px;
-            border-radius: 8px;
+            background: #0e1624;
+            color: #e0ecff;
+            padding: 16px;
+            border-radius: 12px;
             overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.6;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            border: 1px solid #1f2c42;
         }
 
         .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #f5c6cb;
+            background: #fff5f5;
+            color: #a12b2b;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #f3c7c7;
         }
 
         .avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
+            width: 88px;
+            height: 88px;
+            border-radius: 16px;
             object-fit: cover;
-            border: 4px solid #667eea;
+            border: 3px solid rgba(255,255,255,0.8);
+            box-shadow: 0 10px 30px rgba(15, 29, 51, 0.35);
         }
 
-        .user-header {
+        .hero {
             display: flex;
             align-items: center;
-            gap: 20px;
-            margin-bottom: 20px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
+            gap: 16px;
+            padding: 16px;
+            background: linear-gradient(135deg, #0d1a2b 0%, #1c3053 100%);
+            color: #f4f7ff;
+            border-radius: 16px;
         }
 
         .user-info {
@@ -270,71 +310,131 @@
 
         .user-nick {
             font-size: 24px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
+            font-weight: 800;
+            margin-bottom: 4px;
+            letter-spacing: 0.2px;
         }
 
-        .user-vid {
-            color: #6c757d;
-            font-size: 14px;
+        .meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #d3dcf0;
+        }
+
+        .meta span {
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .pill {
+            padding: 10px 12px;
+            background: #0f1d33;
+            color: #d9e5ff;
+            border-radius: 12px;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .copy-badge {
+            padding: 6px 10px;
+            background: #32415c;
+            color: #e8f0ff;
+            border: 1px solid #3e5272;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s ease, opacity 0.2s ease;
+        }
+
+        .copy-badge:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .third-party-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 10px;
+        }
+
+        .third-item {
+            border: 1px solid #e3e8f2;
+            border-radius: 12px;
+            padding: 12px;
+            background: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .time-label {
+            font-size: 12px;
+            color: #6b768b;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔍 Batch Query Tool</h1>
+    <div class="container layout">
+        <div class="left-panel">
+            <div class="page-title">🔍 Batch Query Tool <span>IST · 12h</span></div>
+            <div class="card glow">
+                <form id="queryForm">
+                    <div class="form-group">
+                        <label>User ID (vals)</label>
+                        <input type="text" id="vals" name="vals" value="177307453" placeholder="Enter user ID" required>
+                    </div>
 
-        <div class="card">
-            <form id="queryForm">
-                <div class="form-group">
-                    <label>User ID (vals)</label>
-                    <input type="text" id="vals" name="vals" value="177307453" placeholder="Enter user ID" required>
-                </div>
+                    <div class="form-group">
+                        <label>App ID</label>
+                        <input type="text" id="appId" name="appId" value="ikxd" required>
+                    </div>
 
-                <div class="form-group">
-                    <label>App ID</label>
-                    <input type="text" id="appId" name="appId" value="ikxd" required>
-                </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="type" name="type">
+                            <option value="1">Type 1</option>
+                            <option value="2">Type 2</option>
+                            <option value="3" selected>Type 3 (User)</option>
+                            <option value="4">Type 4</option>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label>Type</label>
-                    <select id="type" name="type">
-                        <option value="1">Type 1</option>
-                        <option value="2">Type 2</option>
-                        <option value="3" selected>Type 3 (User)</option>
-                        <option value="4">Type 4</option>
-                    </select>
-                </div>
+                    <div class="form-group">
+                        <label>With OA</label>
+                        <select id="with_oa" name="with_oa">
+                            <option value="0">No</option>
+                            <option value="1" selected>Yes</option>
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    <label>With OA</label>
-                    <select id="with_oa" name="with_oa">
-                        <option value="0">No</option>
-                        <option value="1" selected>Yes</option>
-                    </select>
-                </div>
-
-                <div class="button-group">
-                    <button type="submit" class="btn-primary">Query</button>
-                    <button type="button" class="btn-secondary" onclick="clearResults()">Clear</button>
-                </div>
-            </form>
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">Query</button>
+                        <button type="button" class="btn-secondary" onclick="clearResults()">Clear</button>
+                    </div>
+                </form>
+            </div>
         </div>
 
-        <div id="loading">
-            <div class="spinner"></div>
-            <p style="margin-top: 15px; color: white; font-weight: 600;">Loading...</p>
-        </div>
+        <div>
+            <div id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px; color: white; font-weight: 600;">Loading...</p>
+            </div>
 
-        <div id="results" class="card">
-            <div class="result-header">
-                <h2>Results</h2>
-                <div>
+            <div id="results" class="card" style="display:none;">
+                <div class="result-header">
+                    <h2 style="margin:0;">Results</h2>
                     <span class="status-code" id="statusCode"></span>
                 </div>
+                <div id="resultContent"></div>
             </div>
-            <div id="resultContent"></div>
         </div>
     </div>
 
@@ -396,25 +496,53 @@
             return translations[text] || text;
         }
 
+        function formatIST(value) {
+            if (!value && value !== 0) return 'N/A';
+            let date;
+            if (typeof value === 'number' || /^\d+(\.\d+)?$/.test(value)) {
+                date = new Date(Number(value) * (String(value).length <= 10 ? 1000 : 1));
+            } else {
+                const parsed = Date.parse(value);
+                if (Number.isNaN(parsed)) return value;
+                date = new Date(parsed);
+            }
+            return date.toLocaleString('en-GB', {
+                timeZone: 'Asia/Kolkata',
+                hour12: true,
+                year: 'numeric',
+                month: 'short',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
         function displayResults(response) {
             const info = response.info && response.info[0];
             let html = '';
 
             if (info && translate(info.type) !== 'Does Not Exist') {
                 html += `
-                    <div class="user-header">
+                    <div class="hero">
                         ${info.avatar ? `<img src="${info.avatar}" class="avatar" alt="Avatar">` : ''}
                         <div class="user-info">
                             <div class="user-nick">${info.nick || 'N/A'}</div>
-                            <div class="user-vid">
-                                VID: ${info.vid || 'N/A'}
-                                ${info.vid ? `<button class="copy-btn" onclick="copyToClipboard('${info.vid}', event)" style="position: relative; margin-left: 10px; top: 0; right: 0;">Copy VID</button>` : ''}
+                            <div class="meta">
+                                <div class="pill">
+                                    VID: ${info.vid || 'N/A'}
+                                    ${info.vid ? `<button class="copy-badge" onclick="copyToClipboard('${info.vid}', event)">Copy</button>` : ''}
+                                </div>
+                                <div class="pill">
+                                    User ID: ${info.uuid || 'N/A'}
+                                    ${info.uuid ? `<button class="copy-badge" onclick="copyToClipboard('${info.uuid}', event)">Copy</button>` : ''}
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
 
-                html += '<div class="info-grid">';
+                html += '<div class="info-grid" style="margin-top:16px;">';
 
                 if (info.loginInfo && info.loginInfo.appDevID) {
                     html += `
@@ -466,22 +594,23 @@
                     </div>
                     <div class="info-item">
                         <button class="copy-btn" onclick="copyToClipboard('${info.createDate}', event)">Copy</button>
-                        <div class="info-label">Created Date</div>
-                        <div class="info-value">${info.createDate ? new Date(info.createDate).toLocaleDateString() : 'N/A'}</div>
-                    </div>
+                            <div class="info-label">Created (IST 12h)</div>
+                            <div class="info-value">${info.createDate ? formatIST(info.createDate) : 'N/A'}</div>
+                        </div>
                 `;
 
                 if (info.loginInfo) {
                     html += `
                         <div class="info-item">
                             <button class="copy-btn" onclick="copyToClipboard('${info.loginInfo.appDate}', event)">Copy</button>
-                            <div class="info-label">Last App Login</div>
-                            <div class="info-value">${new Date(info.loginInfo.appDate * 1000).toLocaleString()}</div>
+                            <div class="info-label">Last App Login (IST 12h)</div>
+                            <div class="info-value">${formatIST(info.loginInfo.appDate)}</div>
                         </div>
                         <div class="info-item">
-                            <button class="copy-btn" onclick="copyToClipboard('${info.loginInfo.appIP}', event)">Copy</button>
                             <div class="info-label">App Login IP</div>
-                            <div class="info-value">${info.loginInfo.appIP || 'N/A'}</div>
+                            <div class="info-value">
+                                ${info.loginInfo.appIP ? `<a href="https://whatismyipaddress.com/ip/${info.loginInfo.appIP}" target="_blank" rel="noreferrer noopener">${info.loginInfo.appIP}</a>` : 'N/A'}
+                            </div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">App Device Type</div>
@@ -489,13 +618,14 @@
                         </div>
                         <div class="info-item">
                             <button class="copy-btn" onclick="copyToClipboard('${info.loginInfo.webDate}', event)">Copy</button>
-                            <div class="info-label">Last Web Login</div>
-                            <div class="info-value">${info.loginInfo.webDate ? new Date(info.loginInfo.webDate * 1000).toLocaleString() : 'N/A'}</div>
+                            <div class="info-label">Last Web Login (IST 12h)</div>
+                            <div class="info-value">${info.loginInfo.webDate ? formatIST(info.loginInfo.webDate) : 'N/A'}</div>
                         </div>
                         <div class="info-item">
-                            <button class="copy-btn" onclick="copyToClipboard('${info.loginInfo.webIP}', event)">Copy</button>
                             <div class="info-label">Web Login IP</div>
-                            <div class="info-value">${info.loginInfo.webIP || 'N/A'}</div>
+                            <div class="info-value">
+                                ${info.loginInfo.webIP ? `<a href="https://whatismyipaddress.com/ip/${info.loginInfo.webIP}" target="_blank" rel="noreferrer noopener">${info.loginInfo.webIP}</a>` : 'N/A'}
+                            </div>
                         </div>
                         <div class="info-item">
                             <div class="info-label">App Type</div>
@@ -508,16 +638,17 @@
 
                 if (info.thirdpartyList && info.thirdpartyList.length > 0) {
                     html += `
-                        <div class="third-party-section">
-                            <h3>🔗 Linked Third-Party Accounts (${info.thirdpartyList.length})</h3>
-                            <div class="info-grid">
+                        <div style="margin-top:12px;">
+                            <div class="section-title">🔗 Linked Third-Party Accounts (${info.thirdpartyList.length})</div>
+                            <div class="third-party-list">
                     `;
                     info.thirdpartyList.forEach((account) => {
                         html += `
-                            <div class="info-item">
-                                <button class="copy-btn" onclick="copyToClipboard('${account.openId}', event)">Copy</button>
-                                <div class="info-label">${account.thirdpartyType ? account.thirdpartyType.charAt(0).toUpperCase() + account.thirdpartyType.slice(1) : 'Unknown'}</div>
-                                <div class="info-value" style="font-size: 14px;">${account.openId || 'N/A'}</div>
+                            <div class="third-item">
+                                <div>
+                                    <div class="info-label">${account.thirdpartyType ? account.thirdpartyType.charAt(0).toUpperCase() + account.thirdpartyType.slice(1) : 'Unknown'}</div>
+                                    <div class="info-value" style="font-size: 14px; font-weight:600;">${account.openId || 'N/A'}</div>
+                                </div>
                             </div>
                         `;
                     });
